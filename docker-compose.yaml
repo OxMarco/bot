@@ -1,0 +1,36 @@
+services:
+  mongo:
+    image: "mongo:latest"
+    container_name: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongoadmin
+      MONGO_INITDB_ROOT_PASSWORD: mongopassword
+      MONGO_INITDB_DATABASE: botdb
+    volumes:
+      - mongodb_data_container:/data/db
+    ports:
+      - 27017:27017
+
+  bot:
+    build: .
+    container_name: bot
+    stop_signal: SIGTERM
+    stop_grace_period: 200s
+    environment:
+      RPC_URL: "${RPC_URL}"
+      NFT_CONTRACT_ADDRESS: "${NFT_CONTRACT_ADDRESS}"
+      TOKEN_CONTRACT_ADDRESS: "${TOKEN_CONTRACT_ADDRESS}"
+      START_TOKEN_ID: "${START_TOKEN_ID}"
+      A: "${A}"
+      B: "${B}"
+    depends_on:
+      mongo:
+        condition: service_started
+    volumes:
+      - bot_data_container:/usr/src/app
+    links:
+      - mongo
+
+volumes:
+  bot_data_container:
+  mongodb_data_container:
