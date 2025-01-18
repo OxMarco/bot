@@ -47,6 +47,8 @@ const token = getContract({
 });
 
 const main = async () => {
+  const blockNumber = await client.getBlockNumber();
+
   const startTokenId = env.START_TOKEN_ID
     ? parseInt(env.START_TOKEN_ID, 10)
     : 0;
@@ -56,7 +58,7 @@ const main = async () => {
     endTokenId = Number(env.END_TOKEN_ID);
   } else {
     try {
-      endTokenId = Number(await nft.read.totalSupply());
+      endTokenId = Number(await nft.read.totalSupply({ blockNumber }));
     } catch (err) {
       throw new Error(
         "`totalSupply` not available or failed. Please provide END_TOKEN_ID explicitly.",
@@ -72,7 +74,7 @@ const main = async () => {
 
   for (let tokenId = startTokenId; tokenId <= endTokenId; tokenId++) {
     try {
-      const holder = await nft.read.ownerOf([BigInt(tokenId)]);
+      const holder = await nft.read.ownerOf([BigInt(tokenId)], { blockNumber });
       const current = holderMap.get(holder) ?? [];
       current.push(tokenId);
       holderMap.set(holder, current);
@@ -84,13 +86,15 @@ const main = async () => {
   const addresses = Array.from(holderMap.keys());
   console.log(`Fetching ERC20 balances for ${addresses.length} addresses...`);
 
-  // holders[i] = { address, nfts, token, time }
+  // holders[i] = { address, nfts, token, points, time }
   const holders = [];
 
   for (const address of addresses) {
     let balance = BigInt(0);
     try {
-      balance = await token.read.balanceOf([address as `0x${string}`]);
+      balance = await token.read.balanceOf([address as `0x${string}`], {
+        blockNumber,
+      });
     } catch (error: any) {
       console.warn(`Error fetching balance for address ${address}: ${error}`);
     }
@@ -108,7 +112,7 @@ const main = async () => {
         nftTokenIds,
         Number(tokenBalance),
       ), /// @dev this may break for huge token balances
-      time: Date.now(),
+      blockNumber,
     });
   }
 

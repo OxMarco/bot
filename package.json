@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "bot.ts",
   "scripts": {
-    "start": "ts-node src/bot.ts"
+    "start": "ts-node src/bot.ts",
+    "lint": "prettier src/* -w"
   },
   "author": "Linpuss Team",
   "license": "MIT",
