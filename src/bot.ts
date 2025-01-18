@@ -29,6 +29,8 @@ const EnvSchema = z.object({
 });
 const env = EnvSchema.parse(process.env);
 
+const decimalScaling = BigInt(10) ** BigInt(18);
+
 const client = createPublicClient({
   chain: mainnet,
   transport: http(env.RPC_URL),
@@ -48,6 +50,7 @@ const token = getContract({
 
 const main = async () => {
   const blockNumber = await client.getBlockNumber();
+  const time = new Date();
 
   const startTokenId = env.START_TOKEN_ID
     ? parseInt(env.START_TOKEN_ID, 10)
@@ -110,9 +113,10 @@ const main = async () => {
         Number(env.A),
         Number(env.B),
         nftTokenIds,
-        Number(tokenBalance),
-      ), /// @dev this may break for huge token balances
+        Number(tokenBalance / decimalScaling),
+      ),
       blockNumber,
+      time,
     });
   }
 
